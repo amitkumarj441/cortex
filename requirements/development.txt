@@ -38,6 +38,7 @@ pep257==0.7.0             # via pylama
 pep8==1.7.0               # via pylama
 pexpect==4.2.0            # via ipython
 pickleshare==0.7.2        # via ipython
+pika==0.10.0
 Pillow==3.3.0             # via newspaper3k
 pip-tools==1.7.0
 prompt-toolkit==1.0.3     # via ipython

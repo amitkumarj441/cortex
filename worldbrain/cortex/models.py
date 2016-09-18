@@ -26,7 +26,8 @@ class Source(models.Model):
     domain_name = models.URLField()
     state = FSMField(default=SourceStates.PENDING.value, db_index=True)
     trusted_source = models.BooleanField(default=False)
-    processed_spider = models.BooleanField(default=False)
+    processed_spider = models.CharField(max_length=100, default='', blank=True)
+    ready_for_crawling = models.BooleanField(default=False)
 
     @transition(
         field=state,
@@ -86,6 +87,9 @@ class AllUrl(models.Model):
     )
     def processed(self):
         pass
+
+    def __str__(self):
+        return self.url
 
 
 class Article(models.Model):
