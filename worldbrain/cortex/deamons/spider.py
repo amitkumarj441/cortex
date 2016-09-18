@@ -1,7 +1,7 @@
-import datetime, pdb
-
 from multiprocessing import Process
 
+import django
+import datetime
 import logging
 import pika
 
@@ -10,11 +10,9 @@ from scrapy.spiders import CrawlSpider, Rule
 from scrapy.crawler import CrawlerProcess
 from scrapy.linkextractors.lxmlhtml import LxmlLinkExtractor
 
-import django
-
 django.setup()
-
 from ..models import AllUrl, Source, SourceStates
+
 
 LOG_FORMAT = ('%(levelname) -10s %(asctime)s %(name) -30s %(funcName) '
               '-35s %(lineno) -5d: %(message)s')
@@ -37,7 +35,7 @@ class SourceSpider(CrawlSpider):
         msg: {bytes}, Format '{domain_name};{id}'
         :param msg:
         """
-        super(CrawlSpider, self)
+        super(CrawlSpider, self).__init__(self)
         splitted = msg.split(b';')
         self.domain_name = str(splitted[0], 'utf8')
         self.id = int(splitted[1])
@@ -100,7 +98,7 @@ class DomainConsumer:
         return pika.SelectConnection(CONNECTION_PARAMETERS, self.on_connection_open, stop_ioloop_on_close=False)
 
     def on_connection_open(self, connection):
-        LOGGER.info('Connection opened')
+        LOGGER.info('Connection opened: {conn}'.format(conn=connection))
         self._connection.add_on_close_callback(self.on_connection_closed)
         self.open_channel()
 
@@ -109,8 +107,8 @@ class DomainConsumer:
         if self._closing:
             self._connection.ioloop.stop()
         else:
-            LOGGER.warning('Connection closed, reopening in 5 seconds: (%s) %s',
-                           reply_code, reply_text)
+            LOGGER.warning('Connection closed {conn}, reopening in 5 seconds: ({reply_code}) {reply_text}.'
+                           .format(reply_code=reply_code, reply_text=reply_text, conn=connection))
             self._connection.add_timeout(5, self.reconnect)
 
     def reconnect(self):
@@ -138,6 +136,7 @@ class DomainConsumer:
         self._connection.close()
 
     def on_queue_declareok(self, method_frame):
+        LOGGER.info('Queue declared: {mf}'.format(mf=method_frame))
         self.start_consuming()
 
     def start_consuming(self):
@@ -151,9 +150,11 @@ class DomainConsumer:
         if self._channel:
             self._channel.close()
 
-    def on_message(self, unused_channel, basic_deliver, properties, body):
+    @staticmethod
+    def on_message(channel, basic_deliver, properties, body):
         LOGGER.info('Received message # %s from %s: %s',
                     basic_deliver.delivery_tag, properties.app_id, body)
+        LOGGER.info('Channel: {channel}'.format(channel=channel))
         process = Process(target=run_spider, args=(body,))
         process.start()
 
@@ -162,8 +163,8 @@ class DomainConsumer:
             LOGGER.info('Sending a Basic.Cancel RPC command to RabbitMQ')
             self._channel.basic_cancel(self.on_cancelok, self._consumer_tag)
 
-    def on_cancelok(self, unused_frame):
-        LOGGER.info('RabbitMQ acknowledged the cancellation of the consumer')
+    def on_cancelok(self, frame):
+        LOGGER.info('RabbitMQ acknowledged the cancellation of the consumer {frame}'.format(frame=frame))
         self.close_channel()
 
     def close_channel(self):
