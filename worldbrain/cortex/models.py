@@ -88,7 +88,7 @@ class AllUrl(models.Model):
     def processed(self):
         pass
 
-    def __unicode__(self):
+    def __str__(self):
         return self.url
 
 
