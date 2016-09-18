@@ -34,6 +34,7 @@ class SourceSpider(CrawlSpider):
 
     def __init__(self, domain_name):
 
+        super(CrawlSpider, self)
         self.domain_name = domain_name
         self.start_urls = [domain_name]
         self.allowed_domains = [domain_name]
