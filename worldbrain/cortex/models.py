@@ -1,3 +1,5 @@
+import datetime
+
 from django.db import models
 from django_fsm import FSMField, transition
 from enum import Enum
@@ -26,7 +28,7 @@ class Source(models.Model):
     domain_name = models.URLField()
     state = FSMField(default=SourceStates.PENDING.value, db_index=True)
     trusted_source = models.BooleanField(default=False)
-    processed_spider = models.BooleanField(default=False)
+    processed_spider = models.CharField(max_length=50, default='', blank=True)
     ready_for_crawling = models.BooleanField(default=False)
 
     @transition(
@@ -87,6 +89,9 @@ class AllUrl(models.Model):
     )
     def processed(self):
         pass
+
+    def __unicode__(self):
+        return self.url
 
 
 class Article(models.Model):
