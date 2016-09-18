@@ -1,4 +1,29 @@
-The Spider module consists of:
+Goal
+-
+Exctracting *URL*s and their *html* contents for domains in the *Source* table
+
+Input
+-
+Domain names from the *Source* table which are not processed by spider yet and
+are ready for crawling
+
+Output
+-
+Saves extracted *URL*s () into the *AllUrl* table with:
+
+- `source = Initial source domain`
+- `url = URL`
+- `html = HTML content for the URL`
+- `is_article = False`
+ 
+Updates the correspondent Source fields:
+
+- `state = SourceStates.READY` if success
+- `processed_spider = timestamp` if success else `processed_spider = Failed +
+timestamp + error message`
+
+Technical implementation
+-
 
 - Django management command within the __cortex__ app (*/cortex/management/commands/feedspider.py*):
 
