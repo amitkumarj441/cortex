@@ -56,11 +56,11 @@ class SourceSpider(CrawlSpider):
                 if not '?' in url and len(url) <= 200:
                     new_url = AllUrl(source=self.source, url=url, html=body, is_article=False)
                     new_url.save()
-        except exception as e:
+        except Exception as e:
             self.source.processed_spider = 'Failed {now}: {e}'.format(now=datetime.datetime.now, e=e)
             self.source.state = SourceStates.FAILED
         else:
-            self.source.processed_spider = unicode(datetime.datetime.now())
+            self.source.processed_spider = str(datetime.datetime.now())
             self.source.state = SourceStates.READY
         finally:
             self.source.save()
