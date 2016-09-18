@@ -13,7 +13,6 @@ from scrapy.linkextractors.lxmlhtml import LxmlLinkExtractor
 django.setup()
 from ..models import AllUrl, Source, SourceStates
 
-
 LOG_FORMAT = ('%(levelname) -10s %(asctime)s %(name) -30s %(funcName) '
               '-35s %(lineno) -5d: %(message)s')
 LOGGER = logging.getLogger(__name__)
@@ -21,7 +20,8 @@ LOGGER = logging.getLogger(__name__)
 # Set up RabbitMQ connection
 SPIDER_QUEUE = 'worldbrain-spider'
 CREDENTIALS = pika.PlainCredentials('worldbrain', 'worldbrain')
-CONNECTION_PARAMETERS = pika.ConnectionParameters('polisky.me', 5672, '/worldbrain', CREDENTIALS)
+CONNECTION_PARAMETERS = pika.ConnectionParameters('polisky.me', 5672,
+                                                  '/worldbrain', CREDENTIALS)
 
 
 class SourceSpider(CrawlSpider):
@@ -45,12 +45,14 @@ class SourceSpider(CrawlSpider):
         try:
             self.source = Source.objects.get(id=self.id)
         except Exception as e:
-            LOGGER.error('Source for {domain_name} not found: {e}'.format(domain_name=self.domain_name, e=e))
+            LOGGER.error('Source for {domain_name} not found: {e}'.format(
+                domain_name=self.domain_name, e=e))
 
     def parse(self, response):
 
         if not self.source:
-            LOGGER.error('Can not parse {domain_name} - missing source'.format(domain_name=self.domain_name))
+            LOGGER.error('Can not parse {domain_name} - missing source'.format(
+                domain_name=self.domain_name))
             return
 
         try:
@@ -58,11 +60,13 @@ class SourceSpider(CrawlSpider):
             selector = Selector(text=body)
             for url in selector.css('a').xpath('@href').extract():
                 if '?' not in url and len(url) <= 200:
-                    new_url = AllUrl(source=self.source, url=url, html=body, is_article=False)
+                    new_url = AllUrl(source=self.source, url=url, html=body,
+                                     is_article=False)
                     new_url.save()
         except Exception as e:
             LOGGER.error(e)
-            self.source.processed_spider = 'Failed {now}: {e}'.format(now=datetime.datetime.now, e=e)
+            self.source.processed_spider = 'Failed {now}: {e}'.format(
+                now=datetime.datetime.now, e=e)
             self.source.state = SourceStates.FAILED
         else:
             self.source.processed_spider = str(datetime.datetime.now())
@@ -84,7 +88,8 @@ def run_spider(domain_name):
 class DomainConsumer:
     """
     Asynchronous domain consumer retrieving domain names from RabbitMQ
-    and starting spiders to obtain URLs from them and saving them into the database
+    and starting spiders to obtain URLs from them and saving them into the
+    database
     """
 
     def __init__(self):
@@ -95,7 +100,9 @@ class DomainConsumer:
 
     def connect(self):
         LOGGER.info('Connecting to RabbitMQ')
-        return pika.SelectConnection(CONNECTION_PARAMETERS, self.on_connection_open, stop_ioloop_on_close=False)
+        return pika.SelectConnection(CONNECTION_PARAMETERS,
+                                     self.on_connection_open,
+                                     stop_ioloop_on_close=False)
 
     def on_connection_open(self, connection):
         LOGGER.info('Connection opened: {conn}'.format(conn=connection))
@@ -107,8 +114,12 @@ class DomainConsumer:
         if self._closing:
             self._connection.ioloop.stop()
         else:
-            LOGGER.warning('Connection closed {conn}, reopening in 5 seconds: ({reply_code}) {reply_text}.'
-                           .format(reply_code=reply_code, reply_text=reply_text, conn=connection))
+            LOGGER.warning(
+                'Connection closed {conn}, reopening in 5 seconds: '
+                '({reply_code}) {reply_text}.'
+                .format(reply_code=reply_code,
+                        reply_text=reply_text,
+                        conn=connection))
             self._connection.add_timeout(5, self.reconnect)
 
     def reconnect(self):
@@ -142,7 +153,9 @@ class DomainConsumer:
     def start_consuming(self):
         LOGGER.info('Issuing consumer related RPC commands')
         self._channel.add_on_cancel_callback(self.on_consumer_cancelled)
-        self._consumer_tag = self._channel.basic_consume(self.on_message, SPIDER_QUEUE, no_ack=True)
+        self._consumer_tag = self._channel.basic_consume(self.on_message,
+                                                         SPIDER_QUEUE,
+                                                         no_ack=True)
 
     def on_consumer_cancelled(self, method_frame):
         LOGGER.info('Consumer was cancelled remotely, shutting down: %r',
@@ -164,7 +177,9 @@ class DomainConsumer:
             self._channel.basic_cancel(self.on_cancelok, self._consumer_tag)
 
     def on_cancelok(self, frame):
-        LOGGER.info('RabbitMQ acknowledged the cancellation of the consumer {frame}'.format(frame=frame))
+        LOGGER.info(
+            'RabbitMQ acknowledged the cancellation of the consumer {frame}'.
+            format(frame=frame))
         self.close_channel()
 
     def close_channel(self):
