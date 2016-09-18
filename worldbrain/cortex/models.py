@@ -26,7 +26,7 @@ class Source(models.Model):
     domain_name = models.URLField()
     state = FSMField(default=SourceStates.PENDING.value, db_index=True)
     trusted_source = models.BooleanField(default=False)
-    processed_spider = models.CharField(max_length=50, default='', blank=True)
+    processed_spider = models.CharField(max_length=100, default='', blank=True)
     ready_for_crawling = models.BooleanField(default=False)
 
     @transition(
