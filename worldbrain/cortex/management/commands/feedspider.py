@@ -2,7 +2,7 @@ import pika
 
 from django.core.management.base import BaseCommand
 
-from worldbrain.cortex.models import Source, SourceStates
+from worldbrain.cortex.models import Source
 
 # Set up RabbitMQ connection
 SPIDER_QUEUE = 'worldbrain-spider'

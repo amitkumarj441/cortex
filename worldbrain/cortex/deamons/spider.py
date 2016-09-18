@@ -1,6 +1,5 @@
 from multiprocessing import Process
 
-import django
 import datetime
 import logging
 import pika
@@ -9,9 +8,6 @@ from scrapy.selector import Selector
 from scrapy.spiders import CrawlSpider, Rule
 from scrapy.crawler import CrawlerProcess
 from scrapy.linkextractors.lxmlhtml import LxmlLinkExtractor
-
-django.setup()
-from ..models import AllUrl, Source, SourceStates
 
 LOG_FORMAT = ('%(levelname) -10s %(asctime)s %(name) -30s %(funcName) '
               '-35s %(lineno) -5d: %(message)s')
@@ -203,6 +199,7 @@ class DomainConsumer:
 
 
 def main():
+
     logging.basicConfig(level=logging.INFO, format=LOG_FORMAT)
     domain_consumer = DomainConsumer()
     try:
@@ -212,4 +209,7 @@ def main():
 
 
 if __name__ == '__main__':
+    import django
+    django.setup()
+    from ..models import AllUrl, Source, SourceStates
     main()
