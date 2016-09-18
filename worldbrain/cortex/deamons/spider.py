@@ -4,11 +4,10 @@ from multiprocessing import Process
 
 import logging
 import pika
-from twisted.internet import reactor
 
 from scrapy.selector import Selector
 from scrapy.spiders import CrawlSpider, Rule
-from scrapy.crawler import CrawlerProcess, CrawlerRunner
+from scrapy.crawler import CrawlerProcess
 from scrapy.linkextractors.lxmlhtml import LxmlLinkExtractor
 
 import django
