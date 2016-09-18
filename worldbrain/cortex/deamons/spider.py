@@ -1,4 +1,4 @@
-import datetime
+import datetime, pdb
 
 from multiprocessing import Process
 
@@ -27,22 +27,27 @@ CONNECTION_PARAMETERS = pika.ConnectionParameters('polisky.me', 5672, '/worldbra
 
 
 class SourceSpider(CrawlSpider):
-    name = 'sourcespider'
+    name = b'sourcespider'
     rules = [
-        Rule(LxmlLinkExtractor(allow=['.{,200}', '[^\?]*']))
+        Rule(LxmlLinkExtractor(allow=[r'.{,200}', r'[^\?]*']))
     ]
 
-    def __init__(self, domain_name):
-
+    def __init__(self, msg):
+        """
+        msg: {bytes}, Format '{domain_name};{id}'
+        :param msg:
+        """
         super(CrawlSpider, self)
-        self.domain_name = domain_name
-        self.start_urls = [domain_name]
-        self.allowed_domains = [domain_name]
+        splitted = msg.split(b';')
+        self.domain_name = str(splitted[0], 'utf8')
+        self.id = int(splitted[1])
+        self.start_urls = [self.domain_name]
+        self.allowed_domains = [self.domain_name]
         self.source = None
         try:
-            self.source = Source.objects.get(domain_name=self.domain_name)
-        except:
-            LOGGER.error('Source for {domain_name} not found'.format(domain_name=self.domain_name))
+            self.source = Source.objects.get(id=self.id)
+        except Exception as e:
+            LOGGER.error('Source for {domain_name} not found: {e}'.format(domain_name=self.domain_name, e=e))
 
     def parse(self, response):
 
@@ -54,17 +59,21 @@ class SourceSpider(CrawlSpider):
             body = response.body
             selector = Selector(text=body)
             for url in selector.css('a').xpath('@href').extract():
-                if not '?' in url and len(url) <= 200:
+                if '?' not in url and len(url) <= 200:
                     new_url = AllUrl(source=self.source, url=url, html=body, is_article=False)
                     new_url.save()
         except Exception as e:
+            LOGGER.error(e)
             self.source.processed_spider = 'Failed {now}: {e}'.format(now=datetime.datetime.now, e=e)
             self.source.state = SourceStates.FAILED
         else:
             self.source.processed_spider = str(datetime.datetime.now())
             self.source.state = SourceStates.READY
         finally:
-            self.source.save()
+            try:
+                self.source.save()
+            except Exception as e:
+                LOGGER.error(e)
 
 
 def run_spider(domain_name):
