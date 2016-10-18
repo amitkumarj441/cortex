@@ -22,7 +22,7 @@ SPIDER_QUEUE = 'worldbrain-spider'
 CREDENTIALS = pika.PlainCredentials('worldbrain', 'worldbrain')
 CONNECTION_PARAMETERS = pika.ConnectionParameters('polisky.me', 5672,
                                                   '/worldbrain', CREDENTIALS,
-                                                  socket_timeout=2)
+                                                  socket_timeout=30)
 
 
 class SourceSpider(CrawlSpider):

@@ -7,7 +7,7 @@ from enum import Enum
 
 credentials = pika.PlainCredentials('worldbrain', 'worldbrain')
 parameters = pika.ConnectionParameters('149.56.13.163', 5672, '/worldbrain',
-                                       credentials, socket_timeout=2)
+                                       credentials, socket_timeout=30)
 
 SPIDER_QUEUE = 'worldbrain-spider'
 try:
