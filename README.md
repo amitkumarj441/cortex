@@ -15,6 +15,21 @@ $ git clone https://github.com/<username>/cortex && cd $_
 
 Please [create and activate virtualenv first] (http://docs.python-guide.org/en/latest/dev/virtualenvs/).
 
+Before installing the dependencies, please install the following packages after updating the package index(```sudo apt-get update```):
+```
+sudo apt-get -y install python
+sudo apt-get -y install build-essential
+sudo apt-get -y install python-dev
+sudo apt-get -y install libpq-dev
+sudo apt-get -y install python-pip
+sudo apt-get -y install libxml2-dev
+sudo apt-get -y install libxslt1-dev
+sudo apt-get -y install libldap2-dev
+sudo apt-get -y install libsasl2-dev
+sudo apt-get -y install libffi-dev
+sudo apt-get -y install postgresql
+sudo apt-get -y install postgresql-contrib
+```
 
 We use [pip-tools](https://github.com/nvie/pip-tools) and [pip](https://pip.pypa.io/en/stable/installing/) to manage our requirements:
 
@@ -85,6 +100,14 @@ You also can use the starter script provided:
 ```
 
 to start the development server.
+
+
+You can also setup the dev env using docker
+
+```
+docker pull worldbrain/cortex
+docker run -it --net=host --name=cortex worldbrain/cortex
+```
 
 Happy hacking!
 

@@ -57,7 +57,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
 
     # Internal apps
-    'worldbrain.cortex',
+    'worldbrain.cortex.apps.CortexConfig'
 ]
 
 MIDDLEWARE_CLASSES = [

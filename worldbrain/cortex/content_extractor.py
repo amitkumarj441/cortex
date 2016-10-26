@@ -2,8 +2,8 @@ import newspaper
 import time
 import datetime
 import nltk
-from urllib.parse import urlparse
-from .models import AllUrl, Article, ArticleStates
+
+from .models import AllUrl, AllUrlStates, Article, ArticleStates
 
 
 class ContentExtractor:
@@ -12,18 +12,22 @@ class ContentExtractor:
         nltk.download('punkt')
 
     def extract_content(self):
-        urls = AllUrl.objects.all()
+        urls = AllUrl.objects.filter(state=AllUrlStates.PENDING.value)
         for entry in urls:
-            entry_html = entry.html
-            entry_url = entry.url
-            article = self.extract_content_wrapper(entry_html, entry_url)
-            article.save()
+            try:
+                article = self.extract_content_wrapper(entry)
+                article.save()
+            except Exception as e:
+                print('Error extracting content from {url}: {e}'.format(
+                    url=entry, e=e))
+            else:
+                entry.processed()
+                entry.save()
 
-    def extract_content_wrapper(self, html, url):
+    def extract_content_wrapper(self, url):
         start = time.time()
-        print(html)
         article = newspaper.Article(url='')
-        article.download(html=html)
+        article.download(html=url.html)
         article.parse()
         article.nlp()
 
@@ -31,11 +35,10 @@ class ContentExtractor:
         try:
             article2.url = url
             article2.title = article.title
-            article2.domain_name = urlparse(url).hostname
             article2.text = article.text
             article2.keywords = str(article.keywords)
             article2.authors = str(article.authors)
-            article2.tags = article.tags
+            article2.tags = list(article.tags)
             article2.summary = article.summary
             # article2.links
             end = time.time()
@@ -44,8 +47,8 @@ class ContentExtractor:
             # article2.html = article.html
             # ISO Format is the standard of maintaining datetime
             article2.publish_date = article.publish_date.isoformat()
-        except:
+        except Exception as e:
             now = datetime.datetime.now().isoformat()
             article2.publish_date = now[:now.index('T')]
-            print('Some fields may be missing')
+            print('Some fields may be missing: {e}'.format(e=e))
         return article2

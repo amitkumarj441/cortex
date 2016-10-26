@@ -1,7 +1,7 @@
 from django.contrib import admin
 from fsm_admin.mixins import FSMTransitionMixin
 
-from .models import Source, AllUrl, SourceStates
+from .models import Source, AllUrl, SourceStates, Article
 
 
 def move_sources_to_ready(source):
@@ -16,7 +16,7 @@ def move_sources_to_ready(source):
 @admin.register(Source)
 class SourceAdmin(admin.ModelAdmin, FSMTransitionMixin):
     fsm_field = ('state',)
-    readonly_fields = ('state',)
+    readonly_fields = ('state', 'last_time_crawled', 'last_error_message')
     list_display = ('domain_name', 'state', 'trusted_source',)
     list_filter = ('state', 'trusted_source',)
     actions = ['make_ready', 'make_trusted']
@@ -48,5 +48,14 @@ class SourceAdmin(admin.ModelAdmin, FSMTransitionMixin):
 
 @admin.register(AllUrl)
 class AllUrlAdmin(admin.ModelAdmin, FSMTransitionMixin):
+    list_display = ('url', 'state', )
     fsm_field = ('state',)
     readonly_fields = ('state',)
+
+
+@admin.register(Article)
+class ArticleAdmin(admin.ModelAdmin, FSMTransitionMixin):
+    fsm_field = ('state',)
+    readonly_fields = ('title', 'url', 'text', 'publish_date', 'authors',
+                       'tags', 'summary', 'state', 'parse_time', 'links',
+                       'keywords')

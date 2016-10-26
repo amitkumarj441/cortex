@@ -19,10 +19,11 @@ Relevance is computed in the following order:
 
 ### Technical Implementation:
 #### Step 1: Initial index of postgreSQL DB in ES
-A django `python manage.py reindex` command will be implemented for reindexing the DB
+A django `python manage.py index` command will be implemented for indexing the DB
 
 
-#### Step 2: Setup Periodic task that will sync the DBS
+#### Step 2: Index new and updated records
+A `post_save` signal and receiver  will be set on the Articles Model. These will handle indexing of new and updated records
 
 #### Step 3: Expose an /api/search/ end-point in the django app that makes use of ES MODULE
 A search api will be exposed on `/api/search?q=<search-phrase>` 

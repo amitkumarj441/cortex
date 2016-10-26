@@ -22,7 +22,7 @@ class ArticleIndex(object):
         self.PHRASE = None
         self.FILTERS = {}
 
-    def reindex(self, body, id=''):
+    def index(self, body, id=''):
         if id:
             self.es.index(index=self.ES_INDEX,
                           doc_type=self.ES_ARTICLE_TYPE,

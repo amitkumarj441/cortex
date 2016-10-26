@@ -5,7 +5,7 @@ from worldbrain.settings.base import logger
 
 
 class Command(BaseCommand):
-    help = 'Reindexes the database in Elastic Search'
+    help = 'Indexes the database in Elastic Search'
 
     def handle(self, *args, **options):
         try:
@@ -24,7 +24,7 @@ class Command(BaseCommand):
             for row in all_entries:
                 id = row['id']
                 del row['id']
-                search.reindex(row, id)
+                search.index(row, id)
 
             logger.info('Successfully indexed db')
 

@@ -89,3 +89,4 @@ w3lib==1.14.2
 watchdog==0.8.3
 wcwidth==0.1.7
 zope.interface==4.2.0
+pika==0.10.0
